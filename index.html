@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baby Game</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    header { padding: 20px 10px 0; }
+    #controls { margin-top: 10px; }
+    #message { height: 1.5em; font-size: 1.5em; font-weight: bold; color: green; }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;      /* vertical centering */
+      justify-content: center;  /* horizontal centering */
+      width: 100%;
+    }
+    #baby { max-width: 90%; max-height: 60vh; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="title"></h1>
+    <p id="description"></p>
+    <div id="controls">
+      <input id="guess" type="number" step="any" placeholder="Enter a number">
+      <button id="submit">Submit</button>
+    </div>
+    <p id="message"></p>
+  </header>
+
+  <main>
+    <img id="baby" alt="Baby">
+  </main>
+
+  <script>
+    // ================= CONFIGURATION (edit here) =================
+    const CONFIG = {
+      title: "Baby Game",
+      description: "Enter your number to make the baby happy",
+      targetNumber: 17.4,
+      happyRange: 0.5,   // within +/- 0.5 of target  -> Happy
+      closeRange: 1.5,   // within +/- 1.5 of target  -> Close (otherwise Crying)
+      images: {
+        resting: "Resting baby.jpg",
+        happy:   "Happy Baby.jpg",
+        close:   "Close Baby.jpg",
+        crying:  "Crying Baby.jpg"
+      },
+      messages: {
+        happy:   "Correct!",
+        close:   "",
+        crying:  "",
+        invalid: "Please enter a valid number."
+      }
+    };
+    // =============================================================
+
+    // Decide which state the baby is in for a given guess
+    function getResult(guess) {
+      // Round to avoid floating-point issues (e.g. 17.9 - 17.4 = 0.5000000000000007)
+      const diff = Math.round(Math.abs(guess - CONFIG.targetNumber) * 1e9) / 1e9;
+      if (diff <= CONFIG.happyRange) return "happy";
+      if (diff <= CONFIG.closeRange) return "close";
+      return "crying";
+    }
+
+    // Update the picture and message on screen
+    function showState(state) {
+      document.getElementById("baby").src = CONFIG.images[state];
+      document.getElementById("message").textContent = CONFIG.messages[state] || "";
+    }
+
+    function handleSubmit() {
+      const raw = document.getElementById("guess").value;
+      const guess = parseFloat(raw);
+      if (raw.trim() === "" || isNaN(guess)) {
+        document.getElementById("message").textContent = CONFIG.messages.invalid;
+        return;
+      }
+      showState(getResult(guess));
+    }
+
+    function init() {
+      document.getElementById("title").textContent = CONFIG.title;
+      document.getElementById("description").textContent = CONFIG.description;
+      document.title = CONFIG.title;
+      showState("resting");
+      document.getElementById("submit").addEventListener("click", handleSubmit);
+      document.getElementById("guess").addEventListener("keydown", e => {
+        if (e.key === "Enter") handleSubmit();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
